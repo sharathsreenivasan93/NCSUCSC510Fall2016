@@ -1,0 +1,28 @@
+- hosts: all
+  sudo: True
+  tasks:
+  - name: Node.js install
+    apt: name=nodejs state=present
+  - name: NPM install
+    apt: name=npm state=latest
+  - name: Forever Install
+    npm: name=forever global=yes state=present
+  - name: Git Install
+    apt: name=git state=present
+  - name: Clone Repository
+    git: repo=https://github.com/CSC-DevOps/App dest=./gitrepoclone
+  - name: Installing npm packages
+    npm: path=~/gitrepoclone executable=/usr/bin/npm state=present
+
+
+  - name: Start Main.js
+    command: forever start gitrepoclone/main.js
+  - name: Update Packages
+    apt: name={{ item }} update_cache=yes state=latest
+    with_items:
+     - bash
+     - openssl
+     - openssh-client
+     - openssh-server
+  - name: "Clear tmp folder"
+    shell: rm -rf tmp/*
