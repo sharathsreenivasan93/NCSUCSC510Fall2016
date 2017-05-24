@@ -1,82 +1,128 @@
-# CSC519HW1
+# DataCollection
 
-### SHARATH SREENIVASAN. STUDENT ID - 200109355
+Data scrapping and REST apis
 
-## REQUIREMENTS
+### REST
 
-1. npm, node should be installed in host machine
-2. User should have an account in DigitalOcean and Amazon AWS
-3. User should also have SSH Key for DigitalOcean
-4. User should have the AWS Access Key and AWS Secret Key
+You will get practice interacting with a REST API in order to collect data. You can read more about REST apis [here](https://github.com/CSC-326/Course/raw/master/Slides/RESTAPI_Frameworks.pptx).
 
-## STEPS
 
-1. Clone the repository
-2. Install the dependencies - npm install
-3. Provision a droplet on DigitalOcean - node digitalOceanProvision.js
-4. Provision an AWS EC2 instance - node awsProvision.js
+### 1. Get a token. 
 
-## CONCEPTS
+Go to your profile page on github.
 
-1.
+![image](https://cloud.githubusercontent.com/assets/742934/12955762/8d8ae346-cff2-11e5-83ac-21cae5dc8531.png)
 
-Idempotency means that the result of a successful performed request is independent of the number of times it is executed.
-Examples of idempotent -
+![image](https://cloud.githubusercontent.com/assets/742934/12955783/a741d0b0-cff2-11e5-9f95-4cfebe421756.png)
 
-- GET and PUT methods are said to be idempotent
+<hr/>
 
-Examples of non idempotent -
+### 2. Test sample code
 
-- POST and PATCH are not idempotent.
+This will install node packages into node_modules
 
-2.
+```
+npm install
+```
 
-Issues related to management of your inventory
+Edit script.js to replace "YOUR TOKEN" with your generated token and your github username.
 
-- Dynamic configuration properties can be difficult to manage and debug.
-- There is a trade-off between releasing the configuration change quickly and a complete product.
-- Handling of private data is difficult due to security issues.
-- Managing and isolating access to certain servers can be difficult due to security threats.
+Now run the script. You should be able to see a list of your repos (may be empty, we'll fix that!).
 
-3.
+```
+node script.js
+```
 
-PUSH MODEL
+The code makes a call to get all of a user's repos.
 
-It's a central management model in which a configuration server pushes changes out to the assets
+```
+   var options = {
+		url: 'https://api.github.com/user/users/' + userName + "/repos",
+		method: 'GET',
+		headers: {
+			"User-Agent": "EnableIssues",
+			"content-type": "application/json",
+			"Authorization": token
+		}
+	};
+```
 
-Advantages
+##### Debugging
 
-- Errors are synchronous
-- It is simple
-- Better at ensuring assets stay in sync with the configuration
+You can also debug/implement REST api calls using `curl`. 
 
-Disadvantages
+A simple example for getting all repos of authenicated user.
 
-- Lack of scalability
-- Lack of Full Automation
+```
+curl --request GET -H "Authorization: token YOURTOKEN" https://api.github.com/user/repos
 
-PULL MODEL
+```
 
-It's a distributed management model where each asset manages itself.
+A more complex example: Change a repositories settings to have issue support.
 
-Advantages
+```
+curl --request PATCH -H "Authorization: token YOURTOKEN" --data '{"name":"hw4","has_issues":"true"}' https://api.github.com/repos/cjparnin/hw4
+```
 
-- Full automation capabilities
-- Each asset can register by itself
-- Increased scalabilites
+Tips for extending.
 
-Disadvantages
+* `-H` allows you to set headers as part of your request.
+* Just replace the `--request` with your METHOD (e.g., GET, POST). 
+* You need `--data` when using POST/PATCH, that will be the data sent to the server.
 
-- Needless complexity
+### 3. On your own
 
-4.
+You will do the following tasks:
 
-Consequences of not having proper Configuration Management
+* Write code for listBranches in a given repo under an owner. See [list branches](https://developer.github.com/v3/repos/#list-branches)
+* Write code for [create a new repo](https://developer.github.com/v3/repos/#create)
+* Write code for [creating an issue](https://developer.github.com/v3/issues/#create-an-issue) for an existing repo.
+* Write code for [editing a repo](https://developer.github.com/v3/repos/#edit) to enable wiki support.
 
-- Losing productivity when a component is replaced with a flawed new component and it takes time to revert to a working state.
-- Redoing implementation because you implemented to meet the requirements that had changed and was not communicated to all parties.
-- Figuring out which system components to change when the requirements change.
 
-##SCREENCAST
 
-Link for screencast - https://youtu.be/Iralgx8AR68
+
+## Data Collection
+
+Not every dataset will have a nice REST api allowing you to get data. In addition, sometimes rate limits, or missing data will make it necessary to try something else. Sometimes, you need to learn how to scrap data.
+
+*Scrapping* is a process for acquiring content through a scripted browser or user agent. There are many tools that support scrapping, such as [beautifulsoup](http://web.stanford.edu/~zlotnick/TextAsData/Web_Scraping_with_Beautiful_Soup.html). Scrapping can get tricky because content that you want may be deeply nested in a web page or it may be hidden behind several pages that require filling out forms or stepping through user interfaces.
+
+For this workshop, will practice using Selenium, which is a powerful tool for scripting web browsers, such as Chrome.
+
+### Setup
+
+Preq: Make sure you have an [Eclipse environment with Maven](https://github.com/REU-SOS/EngineeringBasics).
+
+* From Eclipse, use Import Existing Maven project. Locate Selenium folder and import.
+* Run JUnit tests and make sure you can see 2 passing test cases.
+
+### XPath
+
+In a browser, a html page is represented by DOM, a document model consisting of a tree of elements, attributes, and values. XPath is a tree selector language that makes it easy to write a query to select all elements that match a criteria.
+
+Let's play around in Chrome's console.  Search for anything, and go to google's search result page.  In a console, type: `$x("//a")`. This allows us to use a xpath expression to select all links.
+
+**Exercise**: How could could you select search results links?
+
+**Quick reference**:
+
+* `//` Select all ancestors.
+* `/` Select child
+* `..` Select parent
+* `//a[@data-href]` Select all links that have an attribute "data-href".
+* `//h2[.='Search Results']` Select all h2 elements with value = "Search Results".
+* `//h2/following-sibling::div"` Select the sibiling div after a h2 element.
+
+### Using Selenium
+
+Now that we know how to select elements. Lets automate the process of interacting and clicking through a webpage.
+
+Will will use Selenium to locate several properties from the following site: http://checkbox.io/studies.html
+
+We will walk through one example, and you will do the rest on your own:
+
+* 1. The participant count of "Frustration of Software Developers" is 55
+* 2. The total number of studies closed is 5.
+* 3. If a status of a study is open, you can click on a "Participate" button.
+* 4. You can enter text into this study (don't *actually* submit, or you can't run test again!): http://checkbox.io/studies/?id=569e667f12101f8a12000001
