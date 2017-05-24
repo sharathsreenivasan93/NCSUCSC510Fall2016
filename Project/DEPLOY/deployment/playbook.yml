@@ -1,0 +1,92 @@
+---
+
+- hosts: instances
+  sudo: yes
+
+  tasks:
+
+    - name: Update apt cache
+      apt: update_cache=true cache_valid_time=3600
+
+      #Install nodejs and npm
+
+    - name: Install node 6.x
+      shell: curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+
+    - name: Install nodejs
+      apt: pkg=nodejs state=present
+
+      #Install forever globally
+
+    - name: Install forever
+      command: npm install forever -g
+
+      #Install ansible on the remote server
+
+    - name: Pre-requisites for ansible
+      apt: name={{ item }} state=present
+      with_items:
+        - git
+        - make
+        - vim
+        - python-dev
+        - python-pip
+        - libffi-dev
+        - libssl-dev
+        - libxml2-dev
+        - libxslt1-dev
+        - libjpeg8-dev
+        - zlib1g-dev
+
+    - name: Install ansible
+      pip: name=ansible
+
+    - name: Create ansible config directory
+      file: path=/etc/ansible/ state=directory
+
+    - name: Copy ansible config file
+      copy: src=/etc/ansible/ansible.cfg dest=/etc/ansible/
+
+      #Copy ssh keys to create droplets
+
+    - name: Copy ssh public key
+      copy: src=~/.ssh/id_rsa.pub dest=~/.ssh mode=0600
+
+    - name: Copy ssh private key
+      copy: src=~/.ssh/id_rsa dest=~/.ssh mode=0600
+
+      #Install mongodb
+
+    - name: Import public key to install mongodb
+      command: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+
+    - name: Create list file for mongodb
+      shell: echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+
+    - name: Install mongodb package
+      apt: name=mongodb-org state=latest update_cache=yes
+
+      #Clone repository
+
+    - name: Cloning App Repository
+      git: repo=https://github.com/OnboardingBot/OnboardingBot.git dest=/src/App/
+
+      #Import mongo database
+
+    - name: Import mongo database
+      command: mongorestore --db local /src/App/DEPLOY/dump/local/
+
+      #Install node packages
+
+    - name: Install npm packages
+      npm: path=/src/App/DEPLOY/
+
+      #Setup environment variables
+
+    - name: Copy environment variables
+      copy: src=/etc/keys/.env dest=/src/App/DEPLOY/
+
+      #Start server using forever
+
+    - name: Start BotServer
+      command: forever start bot.js chdir=/src/App/DEPLOY/

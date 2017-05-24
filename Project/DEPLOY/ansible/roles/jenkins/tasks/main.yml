@@ -1,0 +1,17 @@
+---
+- name: Download Jenkins keys 
+  apt_key: url=https://pkg.jenkins.io/debian/jenkins-ci.org.key state=present
+  sudo: yes
+
+- name: Add repository in sources list
+  shell: sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+  sudo: yes
+
+- name: Update apt cache
+  apt: update_cache=yes cache_valid_time=3600
+  sudo: yes
+
+- name: Install jenkins
+  apt: name=jenkins state=present
+  sudo: yes
+  notify: start jenkins

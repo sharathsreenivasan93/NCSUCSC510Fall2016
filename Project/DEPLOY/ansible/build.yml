@@ -1,0 +1,6 @@
+- hosts: instances
+
+  roles:
+    - jenkins
+    - git
+    - setup-user
