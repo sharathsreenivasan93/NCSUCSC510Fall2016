@@ -1,0 +1,2 @@
+[instances]
+104.131.77.208 ansible_ssh_host=104.131.77.208 ansible_ssh_user=root database_username=rahuja database_password=12345 database_name=csc510

@@ -1,0 +1,2 @@
+[instances]
+build-rahuja ansible_ssh_host=159.203.188.38 ansible_ssh_user=root username=rahuja userkeyfile=./../../../keys/id_rahuja.pub

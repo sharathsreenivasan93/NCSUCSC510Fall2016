@@ -1,0 +1,12 @@
+---
+- hosts: instances
+  tasks:
+  - name: Create mysql user
+    mysql_user: 
+      login_user=root
+      login_password=12345
+      name={{ database_username }} 
+      password={{ database_password }}
+      priv={{ database_name }}.*:ALL 
+      append_privs=yes
+      state=present
